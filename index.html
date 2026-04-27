@@ -26,20 +26,16 @@ body{
   border:1px solid rgba(255,255,255,.05);
   border-radius:22px;
 }
-.page{
-  flex:1;
-  padding:18px;
-  display:none;
-}
-.page.active{display:block}/* CHAT */ .chat-box{ height:60vh; overflow:auto; padding:14px; margin-bottom:14px; word-break:break-word; } .msg{ padding:12px 14px; border-radius:18px; margin:8px 0; max-width:85%; font-size:15px; line-height:1.4; } .user{background:#0088cc;margin-left:auto} .bot{background:#2a2a2d}
+.page{flex:1;padding:18px;display:none}
+.page.active{display:block}.section-title{font-size:18px;font-weight:700;margin:6px 0 12px}
 
-.input-row{ display:flex; gap:10px; } .input{ flex:1; padding:14px; border:none; border-radius:18px; background:#1f1f22; color:#fff; outline:none; } .send-btn{ width:52px; border:none; border-radius:18px; background:#00bfff; color:#fff; display:flex; align-items:center; justify-content:center; }
+/* CHAT */ .chat-box{ height:60vh; overflow:auto; padding:14px; margin-bottom:14px; } .msg{ padding:12px 14px; border-radius:18px; margin:8px 0; max-width:85%; font-size:15px; } .user{background:#0088cc;margin-left:auto} .bot{background:#2a2a2d}
 
-.section-title{ font-size:18px; font-weight:700; margin:6px 0 12px; }
+.input-row{display:flex;gap:10px} .input{ flex:1; padding:14px; border:none; border-radius:18px; background:#1f1f22; color:#fff; outline:none; } .send-btn{ width:52px; border:none; border-radius:18px; background:#00bfff; color:#fff; display:flex; align-items:center; justify-content:center; }
 
 /* PROFILE */ .profile-card{ padding:22px; text-align:center; } .avatar{ width:90px; height:90px; border-radius:50%; object-fit:cover; border:3px solid rgba(255,255,255,.15); margin-bottom:12px; }
 
-/* SETTINGS */ .info-card{ padding:16px; margin-bottom:12px; word-break:break-word; }
+/* SETTINGS */ .info-card{ padding:14px; margin-bottom:10px; font-size:13px; }
 
 .bottom-nav{ position:fixed; bottom:0; left:0; right:0; max-width:420px; margin:0 auto; display:flex; justify-content:space-around; padding:12px 0; border-radius:22px 22px 0 0; } .nav-btn{ background:none; border:none; color:#aaa; display:flex; flex-direction:column; align-items:center; font-size:12px; gap:6px; } .nav-btn.active{color:#00bfff} </style>
 
@@ -61,17 +57,28 @@ body{
 
   </div>  <!-- PROFILE -->  <div id="profile" class="page">
     <div class="profile-card glass">
-      <img id="avatar" class="avatar" src="" />
+      <img id="avatar" class="avatar" />
       <div id="profileData">Загрузка...</div>
     </div>
   </div>  <!-- SETTINGS -->  <div id="settings" class="page">
-    <div class="section-title">Telegram WebApp данные</div>
+    <div class="section-title">Telegram данные</div>
     <div id="telegramInfo"></div>
-  </div></div><!-- NAV --><div class="bottom-nav glass">
-  <button class="nav-btn active" onclick="switchPage('home',this)">Чат</button>
-  <button class="nav-btn" onclick="switchPage('profile',this)">Профиль</button>
-  <button class="nav-btn" onclick="switchPage('settings',this)">Ещё</button>
-</div><script>
+  </div></div><!-- NAV WITH SVG RESTORED --><div class="bottom-nav glass">  <button class="nav-btn active" onclick="switchPage('home',this)">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+      <path d="M3 10L12 3l9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>
+    </svg>
+    Чат
+  </button>  <button class="nav-btn" onclick="switchPage('profile',this)">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+      <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z"/>
+    </svg>
+    Профиль
+  </button>  <button class="nav-btn" onclick="switchPage('settings',this)">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+      <path d="M12 8a4 4 0 100 8 4 4 0 000-8zm8 4a7 7 0 00-.1-1l2.1-1.6-2-3.4-2.5 1a7 7 0 00-1.7-1L13.5 2h-3L9.2 5a7 7 0 00-1.7 1l-2.5-1-2 3.4L5.1 11a7 7 0 000 2l-2.1 1.6 2 3.4 2.5-1a7 7 0 001.7 1l1.3 3h3l1.3-3a7 7 0 001.7-1l2.5 1 2-3.4-2.1-1.6c.1-.3.1-.7.1-1z"/>
+    </svg>
+    Ещё
+  </button></div><script>
 const tg = window.Telegram?.WebApp;
 if(tg){tg.ready();tg.expand();}
 
@@ -92,13 +99,23 @@ async function sendMessage(){
   addMsg(text,'user');
   input.value='';
 
-  // backend placeholder
+  // TRY REAL TELEGRAM MINI APP FLOW
   try{
-    const res = await fetch('/api/message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+    if(tg?.sendData){
+      tg.sendData(JSON.stringify({text}));
+    }
+
+    const res = await fetch('/api/message',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text})
+    });
+
     const data = await res.json();
     addMsg(data.reply || 'Нет ответа','bot');
+
   }catch(e){
-    addMsg('Backend не подключён','bot');
+    addMsg('Бот не подключён (нужен backend)','bot');
   }
 }
 
@@ -118,26 +135,21 @@ function loadProfile(){
   if(u){
     img.src=u.photo_url || 'https://ui-avatars.com/api/?name='+u.first_name;
     document.getElementById('profileData').innerHTML=
-    `<b>${u.first_name||''} ${u.last_name||''}</b><br>@${u.username||'нет'}<br>ID: ${u.id}`;
-  } else {
-    document.getElementById('profileData').innerText='Нет данных Telegram';
+      `<b>${u.first_name||''} ${u.last_name||''}</b><br>@${u.username||'нет'}<br>ID: ${u.id}`;
   }
 }
 
 function loadInfo(){
+  const u=tg?.initDataUnsafe?.user;
   if(!tg) return;
 
-  const u=tg.initDataUnsafe?.user;
-
-  document.getElementById('telegramInfo').innerHTML = `
+  document.getElementById('telegramInfo').innerHTML=`
     <div class="glass info-card">Platform: ${tg.platform}</div>
     <div class="glass info-card">Version: ${tg.version}</div>
     <div class="glass info-card">Theme: ${tg.colorScheme}</div>
-    <div class="glass info-card">Viewport: ${tg.viewportHeight} / ${tg.viewportStableHeight}</div>
-    <div class="glass info-card">User: ${u?.first_name||''} ${u?.last_name||''}</div>
+    <div class="glass info-card">Viewport: ${tg.viewportHeight}</div>
+    <div class="glass info-card">User: ${u?.first_name||''}</div>
     <div class="glass info-card">ID: ${u?.id||''}</div>
-    <div class="glass info-card">Lang: ${u?.language_code||''}</div>
-    <div class="glass info-card">Premium: ${u?.is_premium?'yes':'no'}</div>
   `;
 }
 </script></body>
